@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">  
+<head>
+  <meta charset="utf-8">
+  <title>The BioDigital Human</title>
+  <link rel="stylesheet" href="css/reveal.min.css">
+  <link rel="stylesheet" href="css/theme/default.css" id="theme"> 
+  <link rel="stylesheet" href="plugin/highlight/styles/docco.css"> 
+  <link rel="icon" type="image/png" href="img/bd-logo.png">
+  <style>
+
+    .reveal .slide-number {
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    .reveal section img {
+      max-height: 400px;
+    }
+
+    .reveal pre {
+      margin-left: -12%;
+      box-shadow: none;
+      width: 125%;
+    }
+
+    .reveal .sub-header {
+      font-weight: bold;
+      font-size: 1.1em;
+      margin-bottom: 0.15em;
+    }
+
+    .reveal .me {
+      margin-top: 42px;
+    }
+
+    .reveal ul ul {
+      font-size: 0.8em;
+    }
+
+    .reveal .reference {
+      font-size: 0.5em;
+    }
+
+    #rasterization {
+      height: 300px;
+    }
+
+    iframe {
+      width: 1000px;
+      height: 600px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="reveal">
+    <div class="slides">
+      <section>
+        <h1>WebGL Application Performance</h1>
+        <h2>Optimizing the BioDigital Human</h2>
+        <p class="me">Tarek Sherif</p>
+        <p>BioDigital</p>
+      </section>
+
+      <section>
+        <h3>BioDigital's Goals</h3>
+        <ul>
+          <li>Use interactive 3D to make anatomical content engaging</li>
+          <li>
+            Move beyond the anatomy atlas
+            <ul>
+              <li>Tell stories</li>
+              <li>Bring content to life</li>
+              <li>Map data to and from 3D models</li>
+            </ul>
+          </li>
+          <li>Make it all widely accessible through the Web</li>
+        </ul>
+      </section>
+
+      <section>
+        <h3>The BioDigital Human</h3>
+        <ul>
+          <li>
+            3D content library
+            <ul>
+              <li>5000+ anatomy objects</li>
+              <li>500+ health conditions</li>
+            </ul>
+          </li>
+          <li>
+            Rendering engine built on SceneJS
+          </li>
+          <li>User-created annotations and custom views</li>
+          <li>API for embedding Human content into external websites</li>
+        </ul>
+      </section>
+
+      <section>
+        <h3>Key Clients</h3>
+        <ul>
+          <li>Medical device manufacturers</li>
+          <li>Pharmaceutical</li>
+          <li>Educational</li>
+          <li>Medical students</li>
+        </ul>
+      </section>
+
+      <section>
+        <section>
+          <h3>Some examples</h3>
+          <ul>
+            <li>
+              <a target="_blank" href="https://human.biodigital.com/widgets/duke-stroke-sim/?m=client/Duke/brain_regions.json">The Brain</a>
+            </li>
+            <li>
+              <a target="_blank" href="http://human.biodigital.com/widget?m=client/about/glucose_transport_tour.json&ui-tools=true&ui-panel=true&pre=false">Glucose Transport</a>
+            </li>
+            <li>
+              <a target="_blank" href="https://preview.biodigital.com/widget/?m=public_preview/whole_beating_healthy_heart.json">Beating Heart</a>
+            </li>
+            <li>
+              <a target="_blank" href="http://conditions.about.com/cc/type2diabetes/overview/signs-symptoms/signs_intro">About.com Integration</a>
+            </li>
+          </ul>
+        </section>
+      </section>
+
+      <section>
+        <h3>What is WebGL?</h3>
+        <ul>
+          <li>A low-level JavaScript API that provides access to the GPU</li>
+          <li>Allows for high-performance, interactive 3D graphics on the Web</li>
+        </ul>
+        <img src="img/webgl.jpg">
+      </section>
+
+      <section>
+        <h3>Why WebGL?</h3>
+          <div class="sub-header">Pros</div>
+          <ul>
+            <li>It's everywhere!</li>
+            <li>Use HTML/CSS/JavaScript for easy UI</li>
+            <li>Integrate into client web sites</li>
+            <li>Leverage existing web services</li>
+            <li>(Relatively) easy distribution</li>
+            <li>(Relatively) easy deployment of updates</li>
+          </ul>
+      </section>
+
+      <section>
+        <h3>In a nutshell...</h3>
+          <ul>
+            <li>Leverage the entire infrastructure of the Web as a platform to create dynamic, high-performance 3D applications</li>
+          </ul>
+      </section>
+
+      <section>
+        <h3>Any downsides?</h3>
+          <ul>
+            <li>
+              Web UX expectations
+              <ul>
+                <li>It should be fast</li>
+                <li>It should be easy</li>
+                <li>It should just work</li>
+              </ul>
+            </li>
+          </ul>
+        <div>
+          <img src="img/louis.jpg">
+          <!-- Original image: http://s556.photobucket.com/user/wwm/media/louie.jpg.html -->
+        </div>
+      </section>
+
+      <section>
+        <h2>PERFORMANCE!!!</h2>
+      </section>
+
+      <section>
+        <h3>WebGL Performance considerations</h3>
+        <ul>
+          <li>Download time</li>
+          <li>JavaScript performance</li>
+          <li>Memory management</li>
+          <li>Talking to the GPU</li>
+          <li>Shader performance</li>
+          <li>Mobile considerations</li>
+        </ul>
+      </section>
+
+      <section>
+        <h3>Download time</h3>
+        <ul>
+          <li>Our content is created in-house by a team of 3D artists</li>
+          <li>
+            Data sets can be large
+            <ul>
+              <li>All necessary geometry data</li>
+              <li>Texture images</li>
+              <li>Morph targets for animation</li>
+            </ul>
+          </li>
+        </ul>
+      </section>
+
+      <section>
+        <h3>The eternal struggle</h3>
+        <ul>
+          <li>
+            Artists want it beautiful: big textures, detailed geometry
+            <ul>
+              <li>Medical accurary is paramount</li>
+            </ul>
+          </li>
+          <li>Engineers want it to download quickly and not crash on an iPhone</li>
+          <li>Tension between anatomical detail and usability</li>
+        </ul>
+      </section>
+
+      <section>
+        <h3>Solutions</h3>
+        <ul>
+          <li>Make sure artists are aware of the size of their content</li>
+          <li>
+            Visual "tricks" to compress detail
+            <ul>
+              e.g. Geometric detail versus <a target="_blank" href="http://scenejs.org/examples/index.html#texture_normal">normal maps</a>
+            </ul>
+          </li>
+          <li>Avoid downloading data you don't need</li>
+        </ul>
+      </section>
+
+      <section>
+        <h3>JavaScript Performance</h3>
+        <ul>
+          <li>Animation loops exacerbate performance issues</li> 
+          <li>Many operations run on large geometry arrays</li>
+          <li>Prefer fast code to pretty code</li>
+          <li>Lazy evaluations</li>
+          <li>Cache results</li>
+        </ul>
+      </section>
+
+      <section>
+        <h3>JavaScript Performance</h3>
+        <pre>
+          <code>
+            if (transform._dirty) {
+                transform.matrix.identityMat();
+                transform.matrix.mulMat4(transform.scale);
+                transform.matrix.mulMat4(transform.rotation);
+                transform.matrix.mulMat4(transform.translation);
+                transform._dirty = false;
+            }
+          </code>
+        </pre>
+      </section>
+
+      <section>
+        <h3>Memory management</h3>
+        <ul>
+          <li>Memory management in JavaScript is hard</li>
+          <li>Garbage collection can throttle performance</li>
+          <li>Stability also a concern, especially on mobile</li>
+        </ul>
+      </section>
+
+      <section>
+        <h3>WebGL Considerations</h3>
+        <ul>
+          <li>
+            Large arrays containing geometry data
+            <ul>
+              <li>Don't make unnecessary copies!!!</li>
+            </ul>
+          </li>
+          <li>
+            Animation loops
+            <ul>
+              <li>Any allocations will happen 60 times per second</li>
+            </ul>
+          </li>
+        </ul>
+      </section>
+
+      <section>
+        <h3>Why is memory management hard?</h3>
+        <ul>
+          <li>Common JS idioms make "hidden" allocations</li>  
+        </ul>
+        <pre>
+          <code>
+            object.transform({
+                rotate: {
+                    axis: vec1.cross(vec2).normalize(),
+                    angle: Math.PI / 4
+                } 
+            });
+          </code>
+        </pre>
+      </section>
+
+      <section>
+        <h3>Uglify for performance!</h3>
+        <ul>
+          <li>Pre-allocate outside the animation loop</li>
+        </ul>
+        <pre>
+          <code>
+            var crossVec = new Float32Array(3);
+            var axisVec = new Float32Array(3);
+            var rotateParams = { axis: axisVec, angle: 0};
+            var tranformParams = { rotate: rotateParams };
+          </code>
+        </pre>
+      </section>
+
+      <section>
+        <h3>Uglify for performance!</h3>
+        <ul>
+          <li>Re-use objects and arrays in the animation loop</li>
+        </ul>
+        <pre>
+          <code>
+            cross(vec1, vec2, crossvec);      // Note the "result" argument
+            normalize(crossVec, axisVec);
+            object.transform(transformParams);
+          </code>
+        </pre>
+      </section>
+
+      <section>
+        <h3>Why is memory management hard?</h3>
+        <ul>
+          <li>When is memory allocated?</li>
+        </ul>
+        <pre>
+          <code>
+        var a = new Float32Array(4 * 1024 * 1024); // Allocate 16MB.
+
+        var b = a.subarray(0, 2 * 1024 * 1024);    // No allocation. Reference same memory.
+
+        var c = a.slice(0, 2 * 1024 * 1024);       // Allocate another 8MB!!!
+          </code>
+        </pre>
+      </section>
+
+      <section>
+        <h3>Why is memory management hard?</h3>
+        <ul>
+          <li><a target="_blank" href="https://github.com/xeolabs/scenejs/commit/4c4a7cf1e32a445153815cbbe650837b6f2f276b#diff-63649323a57e33a6359c9c068d5f2252L70">An example from SceneJS</a></li>
+        </ul>
+      </section>
+
+      <section>
+        <h3>Background: How does WebGL work?</h3>
+        <ul>
+          <li>Get WebGL context from a canvas element</li>
+          <li>Send geometry data to the GPU</li>
+          <li>Run the GPU pipeline</li>
+        </ul>
+      </section>
+
+      <section>
+        <h3>Get WebGL context from a canvas element</h3>
+        <pre>
+          <code>
+            var canvas = document.getElementById("the-canvas");
+            var gl = canvas.getContext("webgl");
+          </code>
+        </ul>
+      </section>
+
+      <section>
+        <h3>Send scene data to the GPU</h3>
+        <ul>
+          <li>Arrays of vertex information that describe the meshes</li>
+          <li>Other data describe lights, materials, etc.</li>
+        </ul>
+        <img src="img/fetus_mesh.jpg">
+      </section>
+
+      <section>
+        <h3>Send scene data to the GPU</h3>
+        <pre>
+          <code>
+            var buffer = gl.createBuffer();
+            var aPosition = gl.getUniformLocation(program, "aPosition");
+            var positionData = new Float32Array(positions);
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+            gl.bufferData(gl.ARRAY_BUFFER, positionData, gl.STATIC_DRAW);
+            gl.vertexAttribPointer(aPosition, 3, gl.FLOAT, false, 0, 0);
+            gl.enableVertexAttribArray(aPosition);
+          </code>
+        </pre>
+        <div>(Note the super-concise, expressive API)</div>
+      </section>
+
+      <section>
+        <h3>The GPU pipeline</h3>
+        <ul>
+          <li>
+            Several stages that manipulate the mesh data to produce the final image
+            <ul>
+              <li>Place objects into correct position relative to the camera</li>
+              <li>Figure out which pixels are covered by an object</li>
+              <li>Color those pixels based on available data</li>
+            </ul> 
+          </li>
+          <li>Some stages are programmable, others are not</li>
+        </ul>
+      </section>
+
+      <section>
+        <h3>The GPU pipeline</h3>
+        <img src="img/parallel.png">
+      </section>
+
+      <section>
+        <h3>The GPU pipeline</h3>
+        <div class="sub-header">The Vertex Shader</div>
+        <ul>
+          <li>A program you write that gets compiled onto the GPU</li>
+          <li>Applied to each vertex in the mesh</li>
+          <li>Transforms vertices into "view space" then projects onto the screen</li>
+        </ul>
+        <pre>
+          <code class="c">
+            attribute vec4 aPosition;
+            uniform mat4 uMVP;
+
+            void main() {
+                gl_Position = uPerspective * uView * uModel * aPosition;
+            }
+          </code>
+        </pre>
+      </section>
+
+      <section>
+        <h3>The GPU pipeline</h3>
+        <div class="sub-header">Rasterization</div>
+        <ul>
+          <li>Non-programmable</li>
+          <li>Figure out which pixels are covered by each object</li>
+        </ul>
+        <img src="img/rasterization.png">
+      </section>
+
+      <section>
+        <h3>The GPU pipeline</h3>
+        <div class="sub-header">The Fragment Shader</div>
+        <ul>
+          <li>Another program you write that gets compiled onto the GPU</li>
+          <li>Applied to each pixel covered by an object</li>
+          <li>Uses mesh, material and light information to color a pixel</li>
+        </ul>
+        <pre>
+          <code class="c">
+            varying vec4 vPosition;
+            varying vec4 vNormal;
+            varying vec4 vColor;
+            uniform vec3 uLightPos;
+            uniform vec3 uLightColor;
+
+            void main() {  
+                vec3 lightDir = normalize(uLightPos - vPosition.xyz);
+                float l = max(dot(normalize(vNormal), lightDir), 0.0);
+
+                gl_FragColor = vec4(l * vColor.rgb * uLightColor, vColor.a);
+            }
+          </code>
+        </pre>
+      </section>
+
+      <section>
+        <h2>Now do all that 60 times per second!!!</h2>
+      </section>
+
+      <section>
+        <h3>Talking to the GPU</h3>
+        <ul>
+          <li>GL calls are relatively expensive</li>
+          <li>
+            Data has to move between system and GPU memory
+            <ul>
+              <li>Bandwidth is limited</li>
+            </ul>
+          </li>
+          <li>
+            GL calls outside the browser's render loop force a context switch
+            <ul>
+              <li>Always make GL calls inside <code>requestAnimationFrame()</code></li>
+            </ul>
+          </li>
+        </ul>
+      </section>
+
+      <section>
+        <h3>Talking to the GPU</h3>
+        <ul>
+          <li>Don't make unnecessary GL calls!</li>
+        </ul>
+        <pre>
+          <code>
+            // BAD!!!
+            requestAnimationFrame(function() {
+                gl.drawElements(gl.TRIANGLES, numElements, gl.UNSIGNED_SHORT, 0);
+            });
+
+            // GOOD!!!
+            requestAnimationFrame(function() {
+                if (sceneDirty) {
+                    gl.drawElements(gl.TRIANGLES, numElements, gl.UNSIGNED_SHORT, 0);
+                    sceneDirty = false;
+                }
+            });
+          </code>
+        </pre>
+      </section>
+
+      <section>
+        <h3>Shader Performance</h3>
+        <ul>
+          <li>
+            Shader programs are invoked a lot!
+            <ul>
+              <li>Vertex shader: Once per vertex</li>
+              <li>Fragment shader: Potentially once per pixel (8.3M invocations on a 4k screen!)</li>
+            </ul>
+          </li>
+          <li>Optimize!</li>
+        </ul>
+      </section>
+
+      <section>
+        <h3>Shader programming idiosyncrasies</h3>
+        <ul>
+          <li>
+            Generally prefer calculations in the vertex shader (less invocations)
+            <ul>
+              <li>BUT there's a limited amount of data that can pass from VS to FS</li>
+            </ul>
+          </li>
+          <li>Looping and conditionals are very bad for shader performance</li>
+          <li>Prefer conditional compilation to runtime conditions</li>
+        </ul>
+      </section>
+
+      <section>
+        <h3>Example</h3>
+        <ul>
+          <li><a target="_blank" href="https://github.com/xeolabs/scenejs/blob/master/src/core/display/programSourceFactory.js#L1032">The SceneJS uber shader</a></li>
+        </ul>
+      </section>
+
+      <section>
+        <h3>Mobile considerations</h3>
+        <ul>
+          <li>Rendering performance and memory can be severely limited on mobile devices</li>
+          <li>Can't make assumptions about client capabilities</li>
+        </ul>
+        <div>
+          <img src="img/iosgpubug.png">
+        </div>
+      </section>
+
+      <section>
+        <h3>ARGGGH... APPLE!!!</h3>
+        <div>
+          <img src="img/ios-limits.png">
+        </div>
+        <div class="reference">
+          Source: <a href="http://codeflow.org/entries/2014/jun/08/some-issues-with-apples-ios-webgl-implementation/">http://codeflow.org/entries/2014/jun/08/some-issues-with-apples-ios-webgl-implementation/</a>
+        </div>
+      </section>
+
+      <section>
+        <h3>Mobile considerations</h3>
+        <ul>
+          <li>
+            Possible to query some properties:
+            <ul>
+              <li>Certain GL capabilities</li>
+              <li>Shader precision</li>
+            </ul>
+          </li>
+          <li>
+            Not others:
+            <ul>
+              <li>GPU memory</li>
+            </ul>
+          </li>
+        </ul>
+      </section>
+
+      <section>
+        <h3>Know the Client!</h3>
+        <pre>
+          <code>
+        SceneJS.WEBGL_INFO.MAX_VARYING_VECTORS = gl.getParameter(gl.MAX_VARYING_VECTORS);
+        SceneJS.WEBGL_INFO.MAX_TEXTURE_UNITS   = gl.getParameter(gl.MAX_COMBINED_TEXTURE_IMAGE_UNITS);
+
+        if (gl.getShaderPrecisionFormat(gl.FRAGMENT_SHADER, gl.HIGH_FLOAT).precision > 0) {
+            SceneJS.WEBGL_INFO.FS_MAX_FLOAT_PRECISION = "highp";
+        } else if (gl.getShaderPrecisionFormat(gl.FRAGMENT_SHADER, gl.MEDIUM_FLOAT).precision > 0) {
+            SceneJS.WEBGL_INFO.FS_MAX_FLOAT_PRECISION = "mediump";
+        } else {
+            SceneJS.WEBGL_INFO.FS_MAX_FLOAT_PRECISION = "lowp";
+        }
+          </code>
+        </pre>
+      </section>
+
+      <section>
+        <h3>Interested in learning more?</h3>
+        <ul>
+          <li>
+            Try out the API!
+            <a target="_blank" href="https://developer.biodigital.com">developer.biodigital.com</a>
+          </li>
+          <li> Join the NYC WebGL Developers Meetup!
+            <a href="http://www.meetup.com/NYC-WebGL-Developers/">meetup.com/NYC-WebGL-Developers</a>
+          </li>
+          <li>
+            BioDigital summer internships!
+          </li>
+        </ul>
+      </section>
+
+      <section>
+        <h1>Thanks!</h1>
+        <ul>
+          <li><a href="mailto:tarek@biodigital.com">tarek@biodigital.com</a></li>
+          <li><a target="_blank" href="https://twitter.com/thsherif">@thsherif</a></li>
+          <li><a target="_blank" href="https://www.biodigital.com">www.biodigital.com</a></li>
+        </ul>
+      </section>
+    </div>
+  </div>
+  <script src="lib/js/head.min.js"></script>
+  <script src="js/reveal.min.js"></script>
+  <script src="js/highlight.min.js"></script>
+  <script>
+    Reveal.initialize({
+      //transition: "none",
+      history: true,
+      slideNumber: true,
+      controls: false
+    });
+
+    hljs.initHighlightingOnLoad();
+  </script>
+</body>
+</html>
