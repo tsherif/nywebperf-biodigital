@@ -491,9 +491,9 @@
             </ul>
           </li>
           <li>
-            GL calls outside the browser's render loop force a context switch
+            GL calls outside the browser's render cycle can be slow
             <ul>
-              <li>Always make GL calls inside <code>requestAnimationFrame()</code></li>
+              <li>Always make GL calls inside a <code>requestAnimationFrame()</code> callback</li>
             </ul>
           </li>
         </ul>
@@ -532,7 +532,7 @@
               <li>Fragment shader: Potentially once per pixel (8.3M invocations on a 4k screen!)</li>
             </ul>
           </li>
-          <li>Optimize!</li>
+          <li>Micro-optimizations count!</li>
         </ul>
       </section>
 
